@@ -62,3 +62,14 @@
 
 /* Message logging */
 #define ENABLE_LOGGING 1
+
+
+#undef WDK_DIR
+#undef LIBUSB0_DIR
+#undef LIBUSBK_DIR
+//#define WDK_DIR "D:\\work\\xtools\\libwdi\\tiny"
+//#define LIBUSB0_DIR "D:\\work\\xtools\\libwdi\\tiny"
+//#define LIBUSBK_DIR "D:\\work\\xtools\\libwdi\\tiny"
+#define USER_DIR "D:\\work\\xtools\\libwdi\\tiny\\empty"
+
+

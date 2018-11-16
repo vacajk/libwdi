@@ -1331,24 +1331,50 @@ BOOL CreateCat(LPCSTR szCatPath, LPCSTR szHWID, LPCSTR szSearchDir, LPCSTR* szFi
 		goto out;
 	}
 
-	// Setup the hash file members
-	if (!GetFullPath(szSearchDir, szInitialDir, sizeof(szInitialDir))) {
-		goto out;
-	}
 	// Make sure the list entries are all lowercase
-	szLocalFileList = (LPSTR *)malloc(cFileList*sizeof(LPSTR));
+	szLocalFileList = (LPSTR *)malloc(cFileList * sizeof(LPSTR));
 	if (szLocalFileList == NULL) {
 		wdi_warn("unable allocate local file list");
 		goto out;
 	}
-	for (i=0; i<cFileList; i++){
+	for (i = 0; i < cFileList; i++) {
 		szLocalFileList[i] = _strdup(szFileList[i]);
 		if (szLocalFileList[i] == NULL)
 			wdi_warn("'%s' could not be duplicated and will be ignored", szFileList[i]);
 		else
 			_strlwr(szLocalFileList[i]);
 	}
-	ScanDirAndHash(hCat, "", szLocalFileList, cFileList);
+
+	if (szSearchDir == NULL) {
+		// search dir not specified, the file full path are in the szFileList
+		for (i = 0; i < cFileList; i++) {
+			BYTE pbHash[SHA1_HASH_LENGTH];
+			LPCSTR szFilePath = szLocalFileList[i];
+			LPCSTR szEntry = szFilePath;
+			int len = safe_strlen(szFilePath);
+			for (int idx = 0; idx < len; idx++) {
+				if (szFilePath[idx] == '\\' || szFilePath[idx] == '/') {
+					szEntry = szFilePath + idx + 1;
+				}
+			}
+
+			if ((CalcHash(pbHash, szFilePath)) && AddFileHash(hCat, szEntry, pbHash)) {
+				wdi_info("added hash for '%s'", szFilePath);
+			}
+			else {
+				wdi_warn("could not add hash for '%s' - ignored", szFilePath);
+			}
+
+		}
+	}
+	else {
+
+		// Setup the hash file members
+		if (!GetFullPath(szSearchDir, szInitialDir, sizeof(szInitialDir))) {
+			goto out;
+		}
+		ScanDirAndHash(hCat, "", szLocalFileList, cFileList);
+	}
 	for (i=0; i<cFileList; i++){
 		free(szLocalFileList[i]);
 	}
